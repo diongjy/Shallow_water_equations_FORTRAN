@@ -1,0 +1,64 @@
+#
+# THis is the Makefile for the SW Model
+#
+
+# Program Name
+PROG = SWE.exe
+
+#Source Folder name
+VPATH = src
+#Object Folder
+OBJDIR = objs
+#Module Folder
+MODDIR = mods
+#Executable Folder
+EXECDIR = exec
+
+#Compiler and Flags
+#O3 - maximum optimization
+#-mcmodel=medium for model
+#-I/usr/include include netcdf library
+FC = gfortran
+FFLAGS = -c -O3 -mcmodel=medium -g -I/usr/include
+FLINK = -O3 -mcmodel=medium -g -L/usr/lib -lnetcdff
+LINKER = $(FC) -o 
+
+
+# Object files
+OBJS = initial.o swe_rk4.o main.o saver.o parameter.o
+
+model : $(PROG)
+
+#Creates the model
+$(PROG) : $(OBJS)
+      @echo "---------------------------------"
+      @echo "Creating the executable for model"
+      @echo "---------------------------------"
+      $(LINKER) $(PROG) $(OBJS) $(FLINK)
+      mv *.o $(OBJDIR)
+      mv *mod $(MODDIR)
+      mv *.exe $(EXECDIR)
+
+
+%.o : %.f90
+       @echo "-----------------------------"
+       @echo "Compiling the files $<"
+       @echo "-----------------------------"
+       $(FC) $(FFLAGS) $<
+
+#makeclean
+clean :
+      @echo "---------------------------------"
+      @echo "Cleaning everything in model"
+      @echo "---------------------------------"
+      rm -f *~ *.nc plot*.png *.exe *.o *.mod
+      rm -f $(OBJDIR)/*.o $(OBJDIR)/*~
+      rm -f $(MODDIR)/*.mod $(MODDIR)/*~
+      rm -f $(EXECDIR)/*~ $(EXECDIR)/*.exe $(EXECDIR)/*.nc
+      rm -f $(VPATH)/*~ 
+
+initial.o        : initial.f90 parameter.o
+swe_rk4.o        : swe_rk4.f90 parameter.o
+saver.o          : saver.f90 parameter.o
+main.o           : main.f90 parameter.o
+parameter.o      : parameter.f90
